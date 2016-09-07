@@ -53,10 +53,12 @@ $route['default_controller'] = 'copytext/index';
 $route['create'] = 'copytext/create';
 $route['textno/(:any)'] = 'copytext/textno/$1';
 $route['datalist'] = 'copytext/datalist/$1';
+$route['article'] = 'copytext/article/$1';
 $route['about'] = 'copytext/about';
 
 // Ajax
 $route['ajaxcreate'] = 'copytext/ajaxcreate';
+$route['ajaxsavearticle'] = 'copytext/ajaxsavearticle';
 
 $route['404_override'] = '';
 $route['translate_uri_dashes'] = FALSE;

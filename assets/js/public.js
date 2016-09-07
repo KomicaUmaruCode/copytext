@@ -22,6 +22,11 @@ $(document).ready(function(){
 		$("#copyresult").select();
 	})
 
+	$("#opensavemodal").click(function(event) {
+		preview_modal_textin()
+		$("#save_result").html($("#preview_text").html());
+	});
+
 	// 輸入原文
 	$("#createorigintext").keyup(function(event) {
 		if ($(this).val() == "") {
@@ -102,6 +107,28 @@ $(document).ready(function(){
 					location.href = "textno/" + data['newtextid'];
 				}
 				else {
+					$("#errormsg").html(data['errormsg']);
+					$("#errormsg").css('display', 'inline-block');
+				}
+			}
+		});
+	});
+
+	// 儲存文章
+	$("#save_current_article").click(function(event) {
+		var query_data = {	newarticle: $("#copyresult").val(),
+							copytext_no: $("#copytext_no").val(),
+							grecaptcha: grecaptcha.getResponse()};
+		$.ajax({
+			type: "POST",
+			url: "ajaxsavearticle",
+			data: query_data,
+			dataType: "json",
+			success: function(data) {
+				if( data['status'] == 'success' ){
+					alert("儲存成功！");
+					location.reload()
+				} else {
 					$("#errormsg").html(data['errormsg']);
 					$("#errormsg").css('display', 'inline-block');
 				}

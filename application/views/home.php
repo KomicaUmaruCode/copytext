@@ -24,6 +24,7 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 	<link rel="shortcut icon" href="<?php echo base_url();?>assets/favicon.ico" >
 	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 	<link href="assets/css/public.css" rel="stylesheet" type="text/css" />
+	<script src='https://www.google.com/recaptcha/api.js'></script>
 </head>
 <body>
 
@@ -72,10 +73,23 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 			<h2 style="text-align:center;">預覽</h2>
 			<div class="well" id="preview_text"><?php echo $refactor_preview_string;?></div>
 			<button type="button" id="openmodal" class="btn btn-primary btn-lg btn-block" data-toggle="modal" data-target="#copymodal">複製全文</button>
+			<button type="button" id="opensavemodal" class="btn btn-primary btn-lg btn-block" data-toggle="modal" data-target="#savemodal">儲存文章</button>
 		</div>
 	</div>
-	<div class="row">
-	</div>
+	
+	<?php  if (count($articledata) > 0) { ?>
+		<div class="row">
+			<div class="col-xs-12">
+				<div class="list-group">
+				<a href="javascript:;" class="list-group-item active">文章</a>
+					<?php foreach ($articledata as $key => $value) { ?>
+						<li class="list-group-item"><?php echo $value["content"];?></li>
+					<?php } ?>
+				</div>
+			</div>
+		</div>
+	<?php } ?>
+	
 	<div class="row">
 		<div class="col-xs-12">
 			<div class="list-group">
@@ -87,6 +101,9 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 		</div>
 	</div>
 </div><!-- /.container -->
+
+<input type="hidden" name="copytext_no" id="copytext_no" value="<?php echo $copytext_no;?>">
+
 <div class="modal fade" tabindex="-1" role="dialog" id="copymodal" aria-labelledby="copytextmodal">
 	<div class="modal-dialog" role="document">
 		<div class="modal-content">
@@ -98,7 +115,26 @@ defined('BASEPATH') OR exit('No direct script access allowed');
 				<textarea class="form-control" id="copyresult" rows="10"></textarea>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
+			</div>
+		</div><!-- /.modal-content -->
+	</div><!-- /.modal-dialog -->
+</div><!-- /.modal -->
+
+<div class="modal fade" tabindex="-1" role="dialog" id="savemodal" aria-labelledby="savemodal">
+	<div class="modal-dialog" role="document">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+				<h4 class="modal-title">確定儲存此篇文章？</h4>
+			</div>
+			<div class="modal-body">
+				<div class="well" id="save_result"></div>
+			</div>
+			<div class="modal-footer">
+				<div class="g-recaptcha" data-sitekey="6LcVkCkTAAAAAMIur6175z7PQnREB1H2PONEajQt"></div>
+				<button type="button" class="btn btn-primary " data-dismiss="modal" id="save_current_article">儲存</button>
+				<button type="button" class="btn btn-default" data-dismiss="modal">關閉</button>
 			</div>
 		</div><!-- /.modal-content -->
 	</div><!-- /.modal-dialog -->

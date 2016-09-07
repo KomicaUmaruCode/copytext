@@ -36,11 +36,21 @@ class Copytext extends CI_Controller {
 		}
 		$listdata = $this->replace_listdata($listdata);
 
+		$data["copytext_no"] = $listdata[0]["no"];
 		$data["ogdesc"] = "複製文產生器，一個讓你方便製作複製文的好所在。";
 		$data["listdata"] = $listdata;
 		$data["origin_string"] = $origin_string;
 		$data["refactor_input_string"] = $refactor_input_string;
 		$data["refactor_preview_string"] = $refactor_preview_string;
+
+		// 文章
+		$this->db->flush_cache();
+		$this->db->where('textlistno', $listdata[0]["no"]);
+		$this->db->order_by('no','DESC');
+		$this->db->limit(200);
+		$articlequery = $this->db->get('article');
+		$articledata = $articlequery->result_array();
+		$data["articledata"] = $articledata;
 		$this->load->view('home', $data);
 	}
 
@@ -68,12 +78,21 @@ class Copytext extends CI_Controller {
 		$refactor_input_string = $this->replace_star($data_arr[0]["copytext"], "input");
 		$refactor_preview_string = $this->replace_star($data_arr[0]["copytext"], "preview");
 
+		$data["copytext_no"] = $data_arr[0]["no"];
 		$data["ogdesc"] = strip_tags($origin_string);
 		$data["listdata"] = $listdata;
 		$data["origin_string"] = $origin_string;
 		$data["refactor_input_string"] = $refactor_input_string;
 		$data["refactor_preview_string"] = $refactor_preview_string;
 
+		// 文章
+		$this->db->flush_cache();
+		$this->db->where('textlistno', $data_arr[0]["no"]);
+		$this->db->order_by('no','DESC');
+		$this->db->limit(200);
+		$articlequery = $this->db->get('article');
+		$articledata = $articlequery->result_array();
+		$data["articledata"] = $articledata;
 		$this->load->view('home', $data);
 	}
 
@@ -109,24 +128,26 @@ class Copytext extends CI_Controller {
 
 		// assemble the message from the POST fields
 		// getting the captcha
-		$captcha = "";
-		if (isset($_POST["grecaptcha"])){
-			$captcha = $_POST["grecaptcha"];
-		}
+		if (ENVIRONMENT == "production") {
+			$captcha = "";
+			if (isset($_POST["grecaptcha"])){
+				$captcha = $_POST["grecaptcha"];
+			}
 
-		if (!$captcha){
-			echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
-			return;
-		}
-		// handling the captcha and checking if it's ok
-		$secret = "6LcVkCkTAAAAAFpDFY1aG3Z_kylsHHkZTgfJpTtF";
-		$response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secret."&response=".$captcha."&remoteip=".$_SERVER["REMOTE_ADDR"]), true);
+			if (!$captcha){
+				echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
+				return;
+			}
+			// handling the captcha and checking if it's ok
+			$secret = "6LcVkCkTAAAAAFpDFY1aG3Z_kylsHHkZTgfJpTtF";
+			$response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secret."&response=".$captcha."&remoteip=".$_SERVER["REMOTE_ADDR"]), true);
 
-		// if the captcha is cleared with google, send the mail and echo ok.
-		if ($response["success"] == false) {
-			echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
-			return;
-		}
+			// if the captcha is cleared with google, send the mail and echo ok.
+			if ($response["success"] == false) {
+				echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
+				return;
+			}
+		}	
 
 		// 引入資料庫套件
 		$this->load->database();
@@ -139,6 +160,43 @@ class Copytext extends CI_Controller {
 		$this->db->insert('textlist', $insert_arr);
 		$new_text_id = $this->db->insert_id();
 		echo json_encode(array("status" => "success", "newtextid" => $new_text_id));
+	}
+
+	public function ajaxsavearticle()
+	{
+		// assemble the message from the POST fields
+		// getting the captcha
+		if (ENVIRONMENT == "production") {
+			$captcha = "";
+			if (isset($_POST["grecaptcha"])){
+				$captcha = $_POST["grecaptcha"];
+			}
+
+			if (!$captcha){
+				echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
+				return;
+			}
+			// handling the captcha and checking if it's ok
+			$secret = "6LcVkCkTAAAAAFpDFY1aG3Z_kylsHHkZTgfJpTtF";
+			$response = json_decode(file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=".$secret."&response=".$captcha."&remoteip=".$_SERVER["REMOTE_ADDR"]), true);
+
+			// if the captcha is cleared with google, send the mail and echo ok.
+			if ($response["success"] == false) {
+				echo json_encode(array("status" => "fail", "errormsg" => "驗證有問題呦！"));
+				return;
+			}
+		}
+
+		// 引入資料庫套件
+		$this->load->database();
+		$insert_arr = array(
+			'content' => nl2br(strip_tags($_POST["newarticle"])),
+			'textlistno' => $_POST["copytext_no"],
+			'flag' => 1	
+		);
+		$this->db->insert('article', $insert_arr);
+		$new_text_id = $this->db->insert_id();
+		echo json_encode(array("status" => "success", "newarticle_id" => $new_text_id));
 	}
 
 	private function replace_star($origin_text, $replace_type)
